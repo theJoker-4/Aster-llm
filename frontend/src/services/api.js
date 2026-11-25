@@ -1,13 +1,14 @@
+const API = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 const json = async (r) => { const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || `Request failed (${r.status})`); return j; };
-export const getConfig = () => fetch('/api/config').then(json);
-export const getModels = () => fetch('/api/models').then(json);
-export const uploadFile = (file) => { const fd = new FormData(); fd.append('file', file); return fetch('/api/files', { method: 'POST', body: fd }).then(json); };
+export const getConfig = () => fetch(`${API}/api/config`).then(json);
+export const getModels = () => fetch(`${API}/api/models`).then(json);
+export const uploadFile = (file) => { const fd = new FormData(); fd.append('file', file); return fetch(`${API}/api/files`, { method: 'POST', body: fd }).then(json); };
 
 export async function streamChat({ messages, model, instructions, webSearch, signal, onDelta }) {
   const body = JSON.stringify({ model, instructions, webSearch, messages: messages.map(({ role, content, attachments }) => ({ role, content, attachments: attachments || [] })) });
   let res;
-  try { res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal }); }
-  catch (e) { if (e.name === 'AbortError') throw e; throw new Error('Cannot reach the server. Check your connection and that the backend is running.'); }
+  try { res = await fetch(`${API}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal }); }
+  catch (e) { if (e.name === 'AbortError') throw e; throw new Error('Cannot reach the server. Check your connection and try again.'); }
   if (!res.ok) await json(res);
   const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '';
   try {
