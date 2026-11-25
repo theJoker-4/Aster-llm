@@ -1,0 +1,15 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import { config, hasKey } from './config/index.js';
+import { apiLimiter } from './middleware/rateLimit.js';
+import { errorHandler } from './middleware/error.js';
+import routes from './routes/index.js';
+const app = express();
+app.disable('x-powered-by');
+app.use(helmet());
+app.use(cors({ origin: config.origin }));
+app.use(express.json({ limit: '15mb' }));
+app.use('/api', apiLimiter, routes);
+app.use(errorHandler);
+app.listen(config.port, () => console.log(`Aster API on :${config.port} — OpenAI key ${hasKey() ? 'found' : 'MISSING'}`));
